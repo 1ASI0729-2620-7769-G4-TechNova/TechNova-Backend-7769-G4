@@ -7,6 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
+
+import com.technova.washtrack.billing.domain.event.SubscriptionPlanChanged;
 import com.technova.washtrack.billing.domain.model.Subscription;
 import com.technova.washtrack.billing.domain.model.SubscriptionStatus;
 import com.technova.washtrack.shared.exception.BusinessRuleException;
@@ -14,10 +18,14 @@ import com.technova.washtrack.shared.exception.ResourceNotFoundException;
 
 /** Each test uses its own laundry id because the in-memory store is shared across the test context. */
 @SpringBootTest
+@RecordApplicationEvents
 class SubscriptionServiceTests {
 
     @Autowired
     private SubscriptionService subscriptions;
+
+    @Autowired
+    private ApplicationEvents events;
 
     @Test
     void subscribesALaundryToAPlan() {
@@ -39,6 +47,17 @@ class SubscriptionServiceTests {
     void rejectsUnknownPlanAndUnknownSubscription() {
         assertThrows(ResourceNotFoundException.class, () -> subscriptions.subscribe(503L, 99L));
         assertThrows(ResourceNotFoundException.class, () -> subscriptions.getById(999999L));
+    }
+
+    @Test
+    void changingPlanPublishesAnEvent() {
+        Subscription subscription = subscriptions.subscribe(506L, 2L);
+
+        Subscription changed = subscriptions.changePlan(subscription.id(), 3L);
+
+        assertEquals(3L, changed.planId());
+        assertEquals(1, events.stream(SubscriptionPlanChanged.class)
+                .filter(e -> e.oldPlanId() == 2L && e.newPlanId() == 3L).count());
     }
 
     @Test
