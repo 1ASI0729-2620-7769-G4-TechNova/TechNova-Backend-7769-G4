@@ -3,6 +3,7 @@ package com.technova.washtrack.delivery.interfaces;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -57,5 +58,18 @@ class DriverControllerTests {
                 .andExpect(jsonPath("$[?(@.name=='Zoe Unavailable')]").isNotEmpty());
         mockMvc.perform(patch(location).contentType(MediaType.APPLICATION_JSON).content("{}"))
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void updatesADriversDetails() throws Exception {
+        String location = register("Mario Perez");
+
+        mockMvc.perform(put(location).contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"name\":\"Mario P.\",\"phone\":\"912345678\",\"vehicle\":\"Moto\",\"available\":false}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Mario P."))
+                .andExpect(jsonPath("$.phone").value("912345678"))
+                .andExpect(jsonPath("$.vehicle").value("Moto"))
+                .andExpect(jsonPath("$.available").value(false));
     }
 }

@@ -4,12 +4,20 @@ package com.technova.washtrack.delivery.domain.model;
 public class Driver {
 
     private final Long id;
-    private final String name;
+    private String name;
+    private String phone = "";
+    private String vehicle = "";
     private boolean available = true;
 
     public Driver(Long id, String name) {
         this.id = id;
         this.name = name;
+    }
+
+    public void updateDetails(String name, String phone, String vehicle) {
+        this.name = name;
+        this.phone = phone == null ? "" : phone;
+        this.vehicle = vehicle == null ? "" : vehicle;
     }
 
     public void setAvailable(boolean available) {
@@ -22,6 +30,14 @@ public class Driver {
 
     public String name() {
         return name;
+    }
+
+    public String phone() {
+        return phone;
+    }
+
+    public String vehicle() {
+        return vehicle;
     }
 
     public boolean isAvailable() {
