@@ -59,6 +59,16 @@ class SubscriptionTests {
     }
 
     @Test
+    void cancelledSubscriptionCannotBeRenewedOrCancelledAgain() {
+        Subscription subscription = Subscription.subscribe(1L, 10L, BASIC, START);
+        subscription.cancel();
+
+        assertEquals(SubscriptionStatus.CANCELLED, subscription.status());
+        assertThrows(BusinessRuleException.class, () -> subscription.renew(BASIC, START));
+        assertThrows(BusinessRuleException.class, subscription::cancel);
+    }
+
+    @Test
     void expiresOnlyOnceTheEndDateIsReached() {
         Subscription subscription = Subscription.subscribe(1L, 10L, BASIC, START);
 

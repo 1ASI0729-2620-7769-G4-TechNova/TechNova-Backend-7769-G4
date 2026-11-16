@@ -10,8 +10,8 @@ public class Subscription {
 
     private final Long id;
     private final Long laundryId;
-    private final Instant startDate;
-    private final Instant endDate;
+    private Instant startDate;
+    private Instant endDate;
     private Long planId;
     private SubscriptionStatus status;
 
@@ -45,6 +45,30 @@ public class Subscription {
             throw new BusinessRuleException("The subscription is already on this plan");
         }
         planId = newPlan.id();
+    }
+
+    /**
+     * Renews the subscription for one more billing period of {@code plan}. An active subscription is
+     * extended from its current end date; an expired one starts a new period from {@code now}.
+     */
+    public void renew(Plan plan, Instant now) {
+        if (status == SubscriptionStatus.CANCELLED) {
+            throw new BusinessRuleException("A cancelled subscription cannot be renewed; subscribe again");
+        }
+        if (status == SubscriptionStatus.EXPIRED) {
+            startDate = now;
+            endDate = endOfPeriod(now, plan);
+        } else {
+            endDate = endOfPeriod(endDate, plan);
+        }
+        status = SubscriptionStatus.ACTIVE;
+    }
+
+    public void cancel() {
+        if (!isActive()) {
+            throw new BusinessRuleException("Only an active subscription can be cancelled");
+        }
+        status = SubscriptionStatus.CANCELLED;
     }
 
     private static Instant endOfPeriod(Instant from, Plan plan) {
