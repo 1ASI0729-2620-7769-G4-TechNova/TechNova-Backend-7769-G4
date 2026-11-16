@@ -15,6 +15,7 @@ public class Payment {
     private final PaymentMethod method;
     private final Instant paidAt;
     private PaymentStatus status;
+    private String rejectionReason;
 
     private Payment(Long id, Long orderId, String customerName, BigDecimal amount, PaymentMethod method,
             Instant paidAt) {
@@ -34,6 +35,25 @@ public class Payment {
             throw new BusinessRuleException("Payment amount must be greater than zero");
         }
         return new Payment(id, orderId, customerName, amount, method, paidAt);
+    }
+
+    /** Marks a pending payment as verified. */
+    public void confirm() {
+        requirePending();
+        status = PaymentStatus.CONFIRMED;
+    }
+
+    /** Marks a pending payment as refused, keeping the reason so it can be shown to the customer. */
+    public void reject(String reason) {
+        requirePending();
+        status = PaymentStatus.REJECTED;
+        rejectionReason = reason;
+    }
+
+    private void requirePending() {
+        if (status != PaymentStatus.PENDING) {
+            throw new BusinessRuleException("Payment " + reference() + " is already " + status);
+        }
     }
 
     public String reference() {
@@ -66,5 +86,9 @@ public class Payment {
 
     public PaymentStatus status() {
         return status;
+    }
+
+    public String rejectionReason() {
+        return rejectionReason;
     }
 }

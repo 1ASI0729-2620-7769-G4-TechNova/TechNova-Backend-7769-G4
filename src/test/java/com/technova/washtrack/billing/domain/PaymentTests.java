@@ -28,6 +28,21 @@ class PaymentTests {
     }
 
     @Test
+    void pendingPaymentCanBeConfirmedOrRejectedOnlyOnce() {
+        Payment confirmed = register(BigDecimal.TEN);
+        confirmed.confirm();
+        assertEquals(PaymentStatus.CONFIRMED, confirmed.status());
+        assertThrows(BusinessRuleException.class, confirmed::confirm);
+        assertThrows(BusinessRuleException.class, () -> confirmed.reject("late"));
+
+        Payment rejected = register(BigDecimal.TEN);
+        rejected.reject("Insufficient funds");
+        assertEquals(PaymentStatus.REJECTED, rejected.status());
+        assertEquals("Insufficient funds", rejected.rejectionReason());
+        assertThrows(BusinessRuleException.class, rejected::confirm);
+    }
+
+    @Test
     void rejectsZeroNegativeOrMissingAmount() {
         assertThrows(BusinessRuleException.class, () -> register(BigDecimal.ZERO));
         assertThrows(BusinessRuleException.class, () -> register(new BigDecimal("-1")));
