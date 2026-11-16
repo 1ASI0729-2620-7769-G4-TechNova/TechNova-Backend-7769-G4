@@ -43,6 +43,13 @@ class GlobalExceptionHandlerTests {
     }
 
     @Test
+    void conflictReturns409() throws Exception {
+        mockMvc.perform(get("/probe/conflict"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.detail").value("slot is full"));
+    }
+
+    @Test
     void invalidBodyReturns400WithFieldErrors() throws Exception {
         mockMvc.perform(post("/probe/body").contentType(MediaType.APPLICATION_JSON).content("{\"amount\":-1}"))
                 .andExpect(status().isBadRequest())
@@ -58,6 +65,11 @@ class GlobalExceptionHandlerTests {
         @GetMapping("/probe/missing")
         void missing() {
             throw new ResourceNotFoundException("Probe", 7);
+        }
+
+        @GetMapping("/probe/conflict")
+        void conflict() {
+            throw new ConflictException("slot is full");
         }
 
         @GetMapping("/probe/rule")
