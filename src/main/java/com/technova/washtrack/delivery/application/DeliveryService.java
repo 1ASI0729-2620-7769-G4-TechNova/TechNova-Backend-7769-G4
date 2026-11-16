@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import com.technova.washtrack.delivery.domain.model.Delivery;
 import com.technova.washtrack.delivery.domain.model.DeliveryStatus;
 import com.technova.washtrack.delivery.domain.model.DeliveryType;
+import com.technova.washtrack.delivery.domain.model.Driver;
 import com.technova.washtrack.delivery.domain.repository.DeliveryRepository;
 import com.technova.washtrack.shared.exception.BusinessRuleException;
 import com.technova.washtrack.shared.exception.ConflictException;
@@ -22,12 +23,28 @@ public class DeliveryService {
     private final DeliveryRepository deliveries;
     private final Clock clock;
     private final int slotCapacity;
+    private final DriverService drivers;
 
-    DeliveryService(DeliveryRepository deliveries, Clock clock,
+    DeliveryService(DeliveryRepository deliveries, Clock clock, DriverService drivers,
             @Value("${washtrack.delivery.slot-capacity:3}") int slotCapacity) {
         this.deliveries = deliveries;
         this.clock = clock;
+        this.drivers = drivers;
         this.slotCapacity = slotCapacity;
+    }
+
+    /** Assigns an available driver, unless that driver already has another active delivery in the same hour. */
+    public Delivery assignDriver(Long deliveryId, Long driverId) {
+        Delivery delivery = getById(deliveryId);
+        Driver driver = drivers.getById(driverId);
+        Instant slotStart = delivery.scheduledAt().truncatedTo(ChronoUnit.HOURS);
+        boolean busy = deliveries.search(null, null, null, slotStart, slotStart.plus(1, ChronoUnit.HOURS)).stream()
+                .anyMatch(d -> !d.id().equals(deliveryId) && d.status().isActive() && driverId.equals(d.driverId()));
+        if (busy) {
+            throw new ConflictException("Driver " + driver.name() + " already has a delivery in that time slot");
+        }
+        delivery.assignDriver(driver);
+        return deliveries.save(delivery);
     }
 
     /** Schedules a pickup or delivery in a one-hour slot that still has capacity. */

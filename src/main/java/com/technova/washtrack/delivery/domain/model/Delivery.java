@@ -2,6 +2,8 @@ package com.technova.washtrack.delivery.domain.model;
 
 import java.time.Instant;
 
+import com.technova.washtrack.shared.exception.BusinessRuleException;
+
 /** Aggregate that coordinates the pickup or home delivery of an order. */
 public class Delivery {
 
@@ -12,6 +14,8 @@ public class Delivery {
     private final String address;
     private final Instant scheduledAt;
     private DeliveryStatus status;
+    private Long driverId;
+    private String driverName;
 
     private Delivery(Long id, Long orderId, String customerName, DeliveryType type, String address,
             Instant scheduledAt) {
@@ -27,6 +31,26 @@ public class Delivery {
     public static Delivery schedule(Long id, Long orderId, String customerName, DeliveryType type,
             String address, Instant scheduledAt) {
         return new Delivery(id, orderId, customerName, type, address, scheduledAt);
+    }
+
+    /** Assigns the driver in charge; only possible while the delivery is still SCHEDULED. */
+    public void assignDriver(Driver driver) {
+        if (status != DeliveryStatus.SCHEDULED) {
+            throw new BusinessRuleException("A driver can only be assigned to a SCHEDULED delivery");
+        }
+        if (!driver.isAvailable()) {
+            throw new BusinessRuleException("Driver " + driver.name() + " is not available");
+        }
+        driverId = driver.id();
+        driverName = driver.name();
+    }
+
+    public Long driverId() {
+        return driverId;
+    }
+
+    public String driverName() {
+        return driverName;
     }
 
     public Long id() {

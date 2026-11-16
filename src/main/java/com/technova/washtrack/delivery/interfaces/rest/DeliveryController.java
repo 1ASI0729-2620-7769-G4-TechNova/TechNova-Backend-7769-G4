@@ -8,6 +8,7 @@ import java.util.List;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -42,6 +43,12 @@ public class DeliveryController {
                 request.address(), request.scheduledAt());
         return ResponseEntity.created(URI.create("/api/v1/deliveries/" + delivery.id()))
                 .body(DeliveryResource.from(delivery));
+    }
+
+    @PatchMapping("/{id}")
+    @Operation(summary = "Assign an available driver to a scheduled delivery")
+    DeliveryResource assignDriver(@PathVariable Long id, @Valid @RequestBody AssignDriverRequest request) {
+        return DeliveryResource.from(deliveries.assignDriver(id, request.driverId()));
     }
 
     @GetMapping("/{id}")
