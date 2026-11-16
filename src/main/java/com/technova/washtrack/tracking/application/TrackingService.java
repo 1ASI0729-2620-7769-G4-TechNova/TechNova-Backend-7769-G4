@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.technova.washtrack.shared.exception.BusinessRuleException;
 import com.technova.washtrack.shared.exception.ResourceNotFoundException;
 import com.technova.washtrack.tracking.domain.event.OrderStatusUpdated;
+import com.technova.washtrack.tracking.domain.model.OrderStage;
 import com.technova.washtrack.tracking.domain.model.OrderTracking;
 import com.technova.washtrack.tracking.domain.model.StageChange;
 import com.technova.washtrack.tracking.domain.repository.OrderTrackingRepository;
@@ -52,6 +53,14 @@ public class TrackingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Tracking of order", orderId));
         tracking.advance(clock.instant());
         return recorded(tracking);
+    }
+
+    /** Marks an order as delivered, but only if it is being tracked and is ready for delivery; otherwise does nothing. */
+    public void markDelivered(Long orderId) {
+        trackings.findByOrderId(orderId).filter(t -> t.stage() == OrderStage.READY_FOR_DELIVERY).ifPresent(t -> {
+            t.advance(clock.instant());
+            recorded(t);
+        });
     }
 
     public OrderTracking getById(Long id) {
