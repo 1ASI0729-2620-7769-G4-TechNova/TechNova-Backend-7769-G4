@@ -1,5 +1,6 @@
 package com.technova.washtrack.billing.domain;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -21,6 +22,12 @@ class PlanTests {
 
         assertTrue(plan.hasFeature("reports"));
         assertFalse(plan.hasFeature("delivery"));
+    }
+
+    @Test
+    void freePlanBillsYearlyAndPaidPlansMonthly() {
+        assertEquals(12, new Plan(1L, PlanName.FREE, BigDecimal.ZERO, "PEN", List.of()).billingMonths());
+        assertEquals(1, new Plan(3L, PlanName.ADVANCED, BigDecimal.TEN, "PEN", List.of()).billingMonths());
     }
 
     @Test
