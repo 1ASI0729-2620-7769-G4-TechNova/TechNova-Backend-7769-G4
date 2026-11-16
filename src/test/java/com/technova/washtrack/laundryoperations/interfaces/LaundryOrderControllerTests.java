@@ -90,3 +90,4 @@ class LaundryOrderControllerTests {
                 .andExpect(jsonPath("$.length()").value(1))
                 .andExpect(jsonPath("$[0].orderId").value(7106));
     }
+}
