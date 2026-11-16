@@ -43,6 +43,18 @@ public class PaymentController {
                 .body(PaymentResource.from(payment));
     }
 
+    @PostMapping("/{id}/confirm")
+    @Operation(summary = "Confirm a pending payment (e.g. cash received at the counter)")
+    PaymentResource confirm(@PathVariable Long id) {
+        return PaymentResource.from(payments.confirm(id));
+    }
+
+    @PostMapping("/{id}/reject")
+    @Operation(summary = "Reject a pending payment, keeping the reason")
+    PaymentResource reject(@PathVariable Long id, @Valid @RequestBody RejectPaymentRequest request) {
+        return PaymentResource.from(payments.reject(id, request.reason()));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get a payment by id")
     PaymentResource get(@PathVariable Long id) {
