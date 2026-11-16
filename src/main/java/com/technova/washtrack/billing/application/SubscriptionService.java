@@ -6,7 +6,9 @@ import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import com.technova.washtrack.billing.domain.event.SubscriptionCancelled;
 import com.technova.washtrack.billing.domain.event.SubscriptionPlanChanged;
+import com.technova.washtrack.billing.domain.event.SubscriptionRenewed;
 import com.technova.washtrack.billing.domain.model.Plan;
 import com.technova.washtrack.billing.domain.model.Subscription;
 import com.technova.washtrack.billing.domain.repository.SubscriptionRepository;
@@ -44,6 +46,22 @@ public class SubscriptionService {
         subscription.changePlan(plans.getById(planId));
         subscriptions.save(subscription);
         events.publishEvent(new SubscriptionPlanChanged(id, subscription.laundryId(), oldPlanId, planId));
+        return subscription;
+    }
+
+    public Subscription renew(Long id) {
+        Subscription subscription = getById(id);
+        subscription.renew(plans.getById(subscription.planId()), clock.instant());
+        subscriptions.save(subscription);
+        events.publishEvent(new SubscriptionRenewed(id, subscription.laundryId(), subscription.endDate()));
+        return subscription;
+    }
+
+    public Subscription cancel(Long id) {
+        Subscription subscription = getById(id);
+        subscription.cancel();
+        subscriptions.save(subscription);
+        events.publishEvent(new SubscriptionCancelled(id, subscription.laundryId()));
         return subscription;
     }
 
