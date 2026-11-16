@@ -44,6 +44,18 @@ public class SubscriptionController {
         return SubscriptionResource.from(subscriptions.changePlan(id, request.planId()));
     }
 
+    @PostMapping("/{id}/renew")
+    @Operation(summary = "Renew for one more billing period (also reactivates an expired subscription)")
+    SubscriptionResource renew(@PathVariable Long id) {
+        return SubscriptionResource.from(subscriptions.renew(id));
+    }
+
+    @PostMapping("/{id}/cancel")
+    @Operation(summary = "Cancel an active subscription")
+    SubscriptionResource cancel(@PathVariable Long id) {
+        return SubscriptionResource.from(subscriptions.cancel(id));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get a subscription by id; an overdue one is reported as EXPIRED")
     SubscriptionResource get(@PathVariable Long id) {

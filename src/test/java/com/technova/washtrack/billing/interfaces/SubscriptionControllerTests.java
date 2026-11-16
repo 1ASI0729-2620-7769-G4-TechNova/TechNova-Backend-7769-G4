@@ -73,6 +73,19 @@ class SubscriptionControllerTests {
     }
 
     @Test
+    void renewsAndCancelsASubscription() throws Exception {
+        String location = subscribe("607", "2").andReturn().getResponse().getHeader("Location");
+
+        mockMvc.perform(post(location + "/renew")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+        mockMvc.perform(post(location + "/cancel")).andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELLED"));
+        mockMvc.perform(post(location + "/renew")).andExpect(status().isUnprocessableContent());
+        mockMvc.perform(post(location + "/cancel")).andExpect(status().isUnprocessableContent());
+        mockMvc.perform(post("/api/v1/subscriptions/999999/renew")).andExpect(status().isNotFound());
+    }
+
+    @Test
     void getsASubscriptionByIdAndByLaundry() throws Exception {
         String location = subscribe("604", "2").andReturn().getResponse().getHeader("Location");
 
