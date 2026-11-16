@@ -18,7 +18,22 @@ public class DriverService {
     }
 
     public Driver register(String name) {
-        return drivers.save(new Driver(drivers.nextId(), name));
+        return register(name, null, null);
+    }
+
+    public Driver register(String name, String phone, String vehicle) {
+        Driver driver = new Driver(drivers.nextId(), name);
+        driver.updateDetails(name, phone, vehicle);
+        return drivers.save(driver);
+    }
+
+    public Driver update(Long id, String name, String phone, String vehicle, Boolean available) {
+        Driver driver = getById(id);
+        driver.updateDetails(name, phone, vehicle);
+        if (available != null) {
+            driver.setAvailable(available);
+        }
+        return drivers.save(driver);
     }
 
     public Driver setAvailability(Long id, boolean available) {
