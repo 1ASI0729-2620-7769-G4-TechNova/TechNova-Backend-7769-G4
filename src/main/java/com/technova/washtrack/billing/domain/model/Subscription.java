@@ -3,14 +3,16 @@ package com.technova.washtrack.billing.domain.model;
 import java.time.Instant;
 import java.time.ZoneOffset;
 
+import com.technova.washtrack.shared.exception.BusinessRuleException;
+
 /** Aggregate that holds the plan a laundry has contracted and the period it covers. */
 public class Subscription {
 
     private final Long id;
     private final Long laundryId;
-    private final Long planId;
     private final Instant startDate;
     private final Instant endDate;
+    private Long planId;
     private SubscriptionStatus status;
 
     private Subscription(Long id, Long laundryId, Long planId, Instant startDate, Instant endDate) {
@@ -32,6 +34,17 @@ public class Subscription {
         if (status == SubscriptionStatus.ACTIVE && !now.isBefore(endDate)) {
             status = SubscriptionStatus.EXPIRED;
         }
+    }
+
+    /** Switches an active subscription to another plan, keeping the current billing period. */
+    public void changePlan(Plan newPlan) {
+        if (!isActive()) {
+            throw new BusinessRuleException("Only an active subscription can change plan; renew it first");
+        }
+        if (newPlan.id().equals(planId)) {
+            throw new BusinessRuleException("The subscription is already on this plan");
+        }
+        planId = newPlan.id();
     }
 
     private static Instant endOfPeriod(Instant from, Plan plan) {
