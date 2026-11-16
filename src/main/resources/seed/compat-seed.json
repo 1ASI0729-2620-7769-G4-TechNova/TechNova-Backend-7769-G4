@@ -1,0 +1,170 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "email": "admin@washtrack.com",
+      "password": "admin123",
+      "firstName": "Ana",
+      "lastName": "Administradora",
+      "status": "ACTIVE",
+      "accountType": "LAUNDRY",
+      "businessName": "WashTrack Lima"
+    },
+    {
+      "id": 2,
+      "email": "operator@washtrack.com",
+      "password": "operator123",
+      "firstName": "Pedro",
+      "lastName": "Fernández",
+      "status": "ACTIVE",
+      "accountType": "LAUNDRY",
+      "businessName": "WashTrack Lima"
+    },
+    {
+      "id": 3,
+      "email": "driver@washtrack.com",
+      "password": "driver123",
+      "firstName": "Luis",
+      "lastName": "Rojas",
+      "status": "ACTIVE",
+      "accountType": "LAUNDRY",
+      "businessName": "WashTrack Lima"
+    },
+    {
+      "id": 4,
+      "email": "ana.martinez@email.com",
+      "password": "cliente123",
+      "firstName": "Ana",
+      "lastName": "Martínez",
+      "status": "ACTIVE",
+      "accountType": "CLIENT",
+      "businessName": ""
+    },
+    {
+      "accountType": "CLIENT",
+      "businessName": "",
+      "firstName": "Ariana",
+      "lastName": "Perez",
+      "email": "arianaperez81106@gmail.com",
+      "password": "Ar8$23IsLLL",
+      "status": "ACTIVE",
+      "id": 5
+    },
+    {
+      "id": 6,
+      "email": "demo",
+      "password": "demo123",
+      "firstName": "Demo",
+      "lastName": "WashTrack",
+      "status": "ACTIVE",
+      "accountType": "LAUNDRY",
+      "businessName": "WashTrack Demo"
+    },
+    {
+      "id": 7,
+      "email": "demo",
+      "password": "demo123",
+      "firstName": "Demo",
+      "lastName": "Cliente",
+      "status": "ACTIVE",
+      "accountType": "CLIENT"
+    }
+  ],
+  "roles": [
+    {
+      "id": 1,
+      "name": "ADMIN",
+      "permissions": [
+        "users:manage",
+        "roles:manage"
+      ]
+    },
+    {
+      "id": 2,
+      "name": "OPERATOR",
+      "permissions": [
+        "orders:manage",
+        "operations:manage"
+      ]
+    },
+    {
+      "id": 3,
+      "name": "DRIVER",
+      "permissions": [
+        "deliveries:view"
+      ]
+    }
+  ],
+  "roleAssignments": [
+    {
+      "id": 1,
+      "userId": 1,
+      "roleId": 1,
+      "assignedAt": "2026-01-01T00:00:00.000Z",
+      "status": "ASSIGNED"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "roleId": 2,
+      "assignedAt": "2026-01-01T00:00:00.000Z",
+      "status": "ASSIGNED"
+    },
+    {
+      "id": 3,
+      "userId": 3,
+      "roleId": 3,
+      "assignedAt": "2026-01-01T00:00:00.000Z",
+      "status": "ASSIGNED"
+    },
+    {
+      "id": 4,
+      "userId": 6,
+      "roleId": 1,
+      "assignedAt": "2026-01-01T00:00:00.000Z",
+      "status": "ASSIGNED"
+    }
+  ],
+  "laundryServices": [
+    {
+      "id": 1,
+      "name": "Lavado por kilo",
+      "description": "Lavado y secado de ropa de uso diario",
+      "unit": "KILO",
+      "price": 6,
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Lavado en seco",
+      "description": "Prendas delicadas, sacos y ternos",
+      "unit": "PIECE",
+      "price": 15,
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "Planchado",
+      "description": "Planchado y doblado de prendas",
+      "unit": "PIECE",
+      "price": 4,
+      "active": true
+    },
+    {
+      "id": 4,
+      "name": "Lavado exprés",
+      "description": "Entrega en el mismo día con recargo",
+      "unit": "KILO",
+      "price": 9,
+      "active": true
+    },
+    {
+      "id": 5,
+      "name": "Frazadas y cobertores",
+      "description": "Lavado de frazadas y cobertores grandes",
+      "unit": "PIECE",
+      "price": 15,
+      "active": false
+    }
+  ]
+}

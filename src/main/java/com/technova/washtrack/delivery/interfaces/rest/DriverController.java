@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -27,7 +28,10 @@ import jakarta.validation.constraints.NotNull;
 @Tag(name = "Drivers", description = "Drivers available for pickups and deliveries")
 public class DriverController {
 
-    record RegisterDriverRequest(@NotBlank String name) {
+    record RegisterDriverRequest(@NotBlank String name, String phone, String vehicle) {
+    }
+
+    record UpdateDriverRequest(@NotBlank String name, String phone, String vehicle, Boolean available) {
     }
 
     record AvailabilityRequest(@NotNull Boolean available) {
@@ -42,7 +46,7 @@ public class DriverController {
     @PostMapping
     @Operation(summary = "Register a driver (available by default)")
     ResponseEntity<DriverResource> register(@Valid @RequestBody RegisterDriverRequest request) {
-        Driver driver = drivers.register(request.name());
+        Driver driver = drivers.register(request.name(), request.phone(), request.vehicle());
         return ResponseEntity.created(URI.create("/api/v1/drivers/" + driver.id())).body(DriverResource.from(driver));
     }
 
@@ -56,6 +60,13 @@ public class DriverController {
     @Operation(summary = "Get a driver by id")
     DriverResource get(@PathVariable Long id) {
         return DriverResource.from(drivers.getById(id));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a driver's name, phone, vehicle and optionally availability")
+    DriverResource update(@PathVariable Long id, @Valid @RequestBody UpdateDriverRequest request) {
+        return DriverResource.from(drivers.update(id, request.name(), request.phone(), request.vehicle(),
+                request.available()));
     }
 
     @PatchMapping("/{id}")
