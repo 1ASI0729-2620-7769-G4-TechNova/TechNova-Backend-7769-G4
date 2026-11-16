@@ -16,6 +16,8 @@ public class Delivery {
     private DeliveryStatus status;
     private Long driverId;
     private String driverName;
+    private Instant completedAt;
+    private String failureReason;
 
     private Delivery(Long id, Long orderId, String customerName, DeliveryType type, String address,
             Instant scheduledAt) {
@@ -43,6 +45,42 @@ public class Delivery {
         }
         driverId = driver.id();
         driverName = driver.name();
+    }
+
+    /** The driver leaves for the address; requires an assigned driver. */
+    public void start() {
+        if (status != DeliveryStatus.SCHEDULED) {
+            throw new BusinessRuleException("Only a SCHEDULED delivery can start");
+        }
+        if (driverId == null) {
+            throw new BusinessRuleException("Assign a driver before starting the delivery");
+        }
+        status = DeliveryStatus.ON_THE_WAY;
+    }
+
+    public void complete(Instant now) {
+        if (status != DeliveryStatus.ON_THE_WAY) {
+            throw new BusinessRuleException("Only an ON_THE_WAY delivery can be completed");
+        }
+        status = DeliveryStatus.COMPLETED;
+        completedAt = now;
+    }
+
+    /** Marks an active delivery as failed (e.g. nobody at the address), keeping the reason. */
+    public void fail(String reason) {
+        if (!status.isActive()) {
+            throw new BusinessRuleException("A " + status + " delivery cannot fail");
+        }
+        status = DeliveryStatus.FAILED;
+        failureReason = reason;
+    }
+
+    public Instant completedAt() {
+        return completedAt;
+    }
+
+    public String failureReason() {
+        return failureReason;
     }
 
     public Long driverId() {
