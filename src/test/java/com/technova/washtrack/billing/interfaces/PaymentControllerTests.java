@@ -27,11 +27,11 @@ class PaymentControllerTests {
         String amountField = amount == null ? "" : ",\"amount\":" + amount;
         return mockMvc.perform(post("/api/v1/payments").contentType(MediaType.APPLICATION_JSON)
                 .content("{\"orderId\":" + orderId + ",\"customerName\":\"Ana Martinez\","
-                        + "\"paymentMethod\":\"CARD\"" + amountField + "}"));
+                        + "\"paymentMethod\":\"CASH\"" + amountField + "}"));
     }
 
     @Test
-    void registersAPendingPayment() throws Exception {
+    void registersACashPaymentAsPending() throws Exception {
         register("201", "45.5")
                 .andExpect(status().isCreated())
                 .andExpect(header().string("Location", matchesPattern("/api/v1/payments/\\d+")))
@@ -39,6 +39,14 @@ class PaymentControllerTests {
                 .andExpect(jsonPath("$.orderId").value(201))
                 .andExpect(jsonPath("$.reference", matchesPattern("PAY-\\d{4}")))
                 .andExpect(jsonPath("$.paidAt").exists());
+    }
+
+    @Test
+    void digitalPaymentIsVerifiedAutomatically() throws Exception {
+        mockMvc.perform(post("/api/v1/payments").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"orderId\":207,\"customerName\":\"Ana\",\"amount\":10,\"paymentMethod\":\"YAPE\"}"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("CONFIRMED"));
     }
 
     @Test
