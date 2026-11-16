@@ -65,6 +65,13 @@ public class SubscriptionService {
         return subscription;
     }
 
+    /** Features the laundry can use today: those of its active plan, or none without an active subscription. */
+    public List<String> enabledFeatures(Long laundryId) {
+        return findByLaundry(laundryId).stream().filter(Subscription::isActive).findFirst()
+                .map(subscription -> plans.getById(subscription.planId()).features())
+                .orElse(List.of());
+    }
+
     public Subscription getById(Long id) {
         Subscription subscription = subscriptions.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Subscription", id));
