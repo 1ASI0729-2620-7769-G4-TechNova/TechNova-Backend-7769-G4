@@ -51,6 +51,24 @@ public class DeliveryController {
         return DeliveryResource.from(deliveries.assignDriver(id, request.driverId()));
     }
 
+    @PostMapping("/{id}/start")
+    @Operation(summary = "The driver leaves for the address (SCHEDULED -> ON_THE_WAY)")
+    DeliveryResource start(@PathVariable Long id) {
+        return DeliveryResource.from(deliveries.start(id));
+    }
+
+    @PostMapping("/{id}/complete")
+    @Operation(summary = "Mark the delivery as completed (ON_THE_WAY -> COMPLETED)")
+    DeliveryResource complete(@PathVariable Long id) {
+        return DeliveryResource.from(deliveries.complete(id));
+    }
+
+    @PostMapping("/{id}/fail")
+    @Operation(summary = "Mark an active delivery as failed, with a reason")
+    DeliveryResource fail(@PathVariable Long id, @Valid @RequestBody FailDeliveryRequest request) {
+        return DeliveryResource.from(deliveries.fail(id, request.reason()));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get a delivery by id")
     DeliveryResource get(@PathVariable Long id) {
