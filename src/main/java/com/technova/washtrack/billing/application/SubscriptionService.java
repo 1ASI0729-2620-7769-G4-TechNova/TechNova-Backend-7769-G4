@@ -3,8 +3,10 @@ package com.technova.washtrack.billing.application;
 import java.time.Clock;
 import java.util.List;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
+import com.technova.washtrack.billing.domain.event.SubscriptionPlanChanged;
 import com.technova.washtrack.billing.domain.model.Plan;
 import com.technova.washtrack.billing.domain.model.Subscription;
 import com.technova.washtrack.billing.domain.repository.SubscriptionRepository;
@@ -17,11 +19,14 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptions;
     private final PlanQueryService plans;
     private final Clock clock;
+    private final ApplicationEventPublisher events;
 
-    SubscriptionService(SubscriptionRepository subscriptions, PlanQueryService plans, Clock clock) {
+    SubscriptionService(SubscriptionRepository subscriptions, PlanQueryService plans, Clock clock,
+            ApplicationEventPublisher events) {
         this.subscriptions = subscriptions;
         this.plans = plans;
         this.clock = clock;
+        this.events = events;
     }
 
     /** Subscribes a laundry to a plan; a laundry can hold only one active subscription at a time. */
@@ -31,6 +36,15 @@ public class SubscriptionService {
             throw new BusinessRuleException("Laundry " + laundryId + " already has an active subscription");
         }
         return subscriptions.save(Subscription.subscribe(subscriptions.nextId(), laundryId, plan, clock.instant()));
+    }
+
+    public Subscription changePlan(Long id, Long planId) {
+        Subscription subscription = getById(id);
+        Long oldPlanId = subscription.planId();
+        subscription.changePlan(plans.getById(planId));
+        subscriptions.save(subscription);
+        events.publishEvent(new SubscriptionPlanChanged(id, subscription.laundryId(), oldPlanId, planId));
+        return subscription;
     }
 
     public Subscription getById(Long id) {

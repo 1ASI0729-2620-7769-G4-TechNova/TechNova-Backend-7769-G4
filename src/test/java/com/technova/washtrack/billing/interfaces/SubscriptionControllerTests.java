@@ -56,6 +56,23 @@ class SubscriptionControllerTests {
     }
 
     @Test
+    void changesPlanOfAnActiveSubscription() throws Exception {
+        String location = subscribe("606", "2").andReturn().getResponse().getHeader("Location");
+
+        mockMvc.perform(post(location + "/change-plan").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"planId\":3}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.planId").value(3))
+                .andExpect(jsonPath("$.status").value("ACTIVE"));
+        mockMvc.perform(post(location + "/change-plan").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"planId\":3}")).andExpect(status().isUnprocessableContent());
+        mockMvc.perform(post(location + "/change-plan").contentType(MediaType.APPLICATION_JSON)
+                .content("{\"planId\":99}")).andExpect(status().isNotFound());
+        mockMvc.perform(post(location + "/change-plan").contentType(MediaType.APPLICATION_JSON).content("{}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void getsASubscriptionByIdAndByLaundry() throws Exception {
         String location = subscribe("604", "2").andReturn().getResponse().getHeader("Location");
 

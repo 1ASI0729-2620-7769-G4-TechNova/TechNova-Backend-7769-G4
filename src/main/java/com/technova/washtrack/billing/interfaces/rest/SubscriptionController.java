@@ -38,6 +38,12 @@ public class SubscriptionController {
                 .body(SubscriptionResource.from(subscription));
     }
 
+    @PostMapping("/{id}/change-plan")
+    @Operation(summary = "Move an active subscription to another plan")
+    SubscriptionResource changePlan(@PathVariable Long id, @Valid @RequestBody ChangePlanRequest request) {
+        return SubscriptionResource.from(subscriptions.changePlan(id, request.planId()));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get a subscription by id; an overdue one is reported as EXPIRED")
     SubscriptionResource get(@PathVariable Long id) {
