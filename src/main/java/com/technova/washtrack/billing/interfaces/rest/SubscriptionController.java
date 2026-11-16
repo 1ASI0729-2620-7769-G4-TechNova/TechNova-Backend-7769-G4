@@ -56,6 +56,12 @@ public class SubscriptionController {
         return SubscriptionResource.from(subscriptions.cancel(id));
     }
 
+    @GetMapping("/features")
+    @Operation(summary = "Features enabled for a laundry by its active plan (empty if none)")
+    List<String> enabledFeatures(@RequestParam Long laundryId) {
+        return subscriptions.enabledFeatures(laundryId);
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get a subscription by id; an overdue one is reported as EXPIRED")
     SubscriptionResource get(@PathVariable Long id) {

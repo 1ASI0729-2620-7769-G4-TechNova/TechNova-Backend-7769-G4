@@ -72,6 +72,17 @@ class SubscriptionLifecycleTests {
     }
 
     @Test
+    void featuresFollowTheActivePlanAndDisappearWhenItLapses() {
+        assertEquals(java.util.List.of(), subscriptions.enabledFeatures(704L));
+
+        subscriptions.subscribe(704L, 2L);
+        assertEquals(java.util.List.of("orders", "reports", "digital-payments"), subscriptions.enabledFeatures(704L));
+
+        CLOCK.set(Instant.parse("2026-12-01T00:00:00Z"));
+        assertEquals(java.util.List.of(), subscriptions.enabledFeatures(704L));
+    }
+
+    @Test
     void renewingAnActiveSubscriptionExtendsItsEndDate() {
         Subscription subscription = subscriptions.subscribe(702L, 2L);
 

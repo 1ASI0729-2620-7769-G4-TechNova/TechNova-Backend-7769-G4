@@ -86,6 +86,19 @@ class SubscriptionControllerTests {
     }
 
     @Test
+    void listsTheFeaturesEnabledForALaundry() throws Exception {
+        mockMvc.perform(get("/api/v1/subscriptions/features").param("laundryId", "608"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+
+        subscribe("608", "3").andExpect(status().isCreated());
+
+        mockMvc.perform(get("/api/v1/subscriptions/features").param("laundryId", "608"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(5))
+                .andExpect(jsonPath("$[4]").value("delivery"));
+    }
+
+    @Test
     void getsASubscriptionByIdAndByLaundry() throws Exception {
         String location = subscribe("604", "2").andReturn().getResponse().getHeader("Location");
 
