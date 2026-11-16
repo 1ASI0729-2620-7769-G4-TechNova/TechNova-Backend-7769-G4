@@ -12,14 +12,34 @@ RESTful API de WashTrack (TechNova). Java 27, Spring Boot 4.1.2, Maven.
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html` (siempre habilitado)
 - Health check: `http://localhost:8080/actuator/health`
 
-> Persistencia: por ahora los repositorios son **en memoria** (los datos se pierden al reiniciar).
-> Cuando se conecte PostgreSQL (Supabase) se reemplazan por adaptadores JPA sin tocar dominio ni aplicacion.
+> Persistencia: Order Management ya usa **JPA con PostgreSQL** (Supabase). Para arrancar la API se necesitan las variables
+> de entorno `DATABASE_USER` y `DATABASE_PASSWORD` (y en produccion `DATABASE_URL`, `DATABASE_PORT` y `DATABASE_NAME`).
+> Los demas contextos siguen con repositorios **en memoria** (los datos se pierden al reiniciar) hasta que se migren a adaptadores JPA.
 
 ## Estructura
 
 Arquitectura por capas y contextos (DDD): `com.technova.washtrack.<contexto>` con
 `domain` (modelo, eventos, puertos), `application` (servicios, politicas),
 `infrastructure` (persistencia, pasarela) e `interfaces.rest` (controladores y recursos).
+
+## Order Management (`/api/v1`)
+
+| Metodo | Ruta | Descripcion |
+| :--- | :--- | :--- |
+| POST | `/orders` | Crea un pedido en DRAFT (`customerId`, `laundryId`, `promisedDate`, `currency`, `specialInstructions`, `items`). Genera un numero unico `ORD-0001` y calcula el total. `promisedDate` debe ser futura |
+| POST | `/orders/{orderId}/items` | Agrega una prenda (`serviceId`, `garmentType`, `quantity`, `weightKg`, `unitPrice`, `currency`, `notes`) y recalcula el total. Solo en DRAFT: si no, 409 |
+| POST | `/orders/{orderId}/confirm` | DRAFT -> CONFIRMED. Si no esta en DRAFT: 409; sin prendas: 422 |
+| POST | `/orders/{orderId}/cancel` | Cancela un pedido en DRAFT o CONFIRMED (`reason` obligatorio). Si ya esta en proceso o listo para entrega: 409 |
+| GET | `/orders/{orderId}` | Detalle del pedido con sus prendas, total, estado y fecha prometida |
+| GET | `/orders?customerId=` o `/orders?laundryId=` | Pedidos de un cliente o de una lavanderia (exactamente un filtro; si falta o se envian ambos: 400) |
+
+Calculo: el subtotal de cada prenda es `unitPrice x quantity` (redondeado a 2 decimales) y el total del pedido es la suma
+de los subtotales; se recalcula automaticamente al agregar una prenda. `weightKg` es informativo. Todas las prendas usan
+la moneda del pedido. Tipos de prenda: SHIRT, PANTS, SUIT, BEDDING, DELICATE, BULK_LAUNDRY.
+Estados: DRAFT, CONFIRMED, IN_PROCESS, READY_FOR_DELIVERY, COMPLETED, CANCELLED.
+
+Errores en formato `application/problem+json` con mensajes traducidos segun el header `Accept-Language` (`en` o `es`):
+400 (validacion), 404 (pedido no encontrado), 409 (estado no permite la operacion) y 422 (pedido sin prendas).
 
 ## Billing & Subscriptions (`/api/v1`)
 
@@ -76,4 +96,4 @@ domicilio (`DeliveryCompleted`) un pedido READY_FOR_DELIVERY pasa a DELIVERED. D
 ## Flujo de trabajo
 
 - Gitflow: ramas `feature/<nombre>` desde `develop`; `main` solo recibe el merge final.
-- Commits en Conventional Commits (`feat(billing): ...`), PR de maximo 400 lineas.
+- Commits en Conventional Commits.
