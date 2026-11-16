@@ -1,0 +1,65 @@
+package com.technova.washtrack.delivery.interfaces.rest;
+
+import java.net.URI;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.util.List;
+
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.technova.washtrack.delivery.application.DeliveryService;
+import com.technova.washtrack.delivery.domain.model.Delivery;
+import com.technova.washtrack.delivery.domain.model.DeliveryStatus;
+import com.technova.washtrack.delivery.domain.model.DeliveryType;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+
+@RestController
+@RequestMapping("/api/v1/deliveries")
+@Tag(name = "Deliveries", description = "Pickups and home deliveries of laundry orders")
+public class DeliveryController {
+
+    private final DeliveryService deliveries;
+
+    DeliveryController(DeliveryService deliveries) {
+        this.deliveries = deliveries;
+    }
+
+    @PostMapping
+    @Operation(summary = "Schedule a pickup or delivery (409 when the time slot is full)")
+    ResponseEntity<DeliveryResource> schedule(@Valid @RequestBody ScheduleDeliveryRequest request) {
+        Delivery delivery = deliveries.schedule(request.orderId(), request.customerName(), request.type(),
+                request.address(), request.scheduledAt());
+        return ResponseEntity.created(URI.create("/api/v1/deliveries/" + delivery.id()))
+                .body(DeliveryResource.from(delivery));
+    }
+
+    @GetMapping("/{id}")
+    @Operation(summary = "Get a delivery by id")
+    DeliveryResource get(@PathVariable Long id) {
+        return DeliveryResource.from(deliveries.getById(id));
+    }
+
+    @GetMapping
+    @Operation(summary = "List deliveries by scheduled time; from/to are inclusive UTC dates")
+    List<DeliveryResource> list(@RequestParam(required = false) Long orderId,
+            @RequestParam(required = false) DeliveryStatus status,
+            @RequestParam(required = false) DeliveryType type,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to) {
+        return deliveries.search(orderId, status, type,
+                from == null ? null : from.atStartOfDay().toInstant(ZoneOffset.UTC),
+                to == null ? null : to.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC))
+                .stream().map(DeliveryResource::from).toList();
+    }
+}
